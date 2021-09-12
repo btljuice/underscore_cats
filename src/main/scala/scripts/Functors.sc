@@ -79,4 +79,36 @@ val t: Tree[Int] = Branch(
 Tree.functor.map(t)(_ + 1)
 // t.map(_ + 1) Does not work in worksheet
 
-/* Functor's map is like "appending" a transformation to a chain */
+/*
+ * Functor's contramap is like "appending" a transformation to a chain
+ * - See example in Printable
+ * - Usually you can provide a map if type A is in output
+ * - Usually you can provide a contramap if the type A is in input
+ * - Usually you provide a invariant map (imap) when A is both input and output
+ */
+
+trait Contravariant[F[_]] {
+  def contramap[A, B](fa: F[A])(f: B => A): F[B]
+}
+trait Invariant[F[_]] {
+  def imap[A, B](fa: F[A])(f: A => B)(g: B => A): F[B]
+}
+
+trait Codec[A] { self =>
+  def encode(input: A): String
+  def decode(s: String): A
+  final def imap[B](f: A => B)(g: B => A): Codec[B] = new Codec[B] {
+    override def encode(input: B) = self.encode(g(input))
+    override def decode(s: String) = f(self.decode(s))
+  }
+}
+object Codec {
+  def apply[A: Codec]: Codec[A] = implicitly[Codec[A]]
+  implicit val stringCodec: Codec[String] = new Codec[String] {
+    override def encode(input: String) = input
+    override def decode(s: String) = s
+  }
+  implicit val doubleCodec: Codec[Double] = stringCodec.imap(_.toDouble)(_.toString)
+  implicit def boxCodec[A: Codec]: Codec[Box[A]] = Codec[A].imap(Box(_))(_.a)
+}
+

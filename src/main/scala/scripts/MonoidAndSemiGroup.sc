@@ -94,3 +94,18 @@ object Order {
   )
 }
 add(Order(1.0, 2.0) :: Order(3.0, 4.0) :: Nil)
+
+
+/* Semi-Group and Monoid applications
+* - Combine parallelized data
+* - Merge partial data to eventually have full information
+* */
+
+
+def imap[A: Monoid, B](f: A => B)(g: B => A): Monoid[B] = new Monoid[B] {
+  override def empty = f(Monoid[A].empty)
+  override def combine(x: B, y: B) = f(Monoid[A].combine(g(x), g(y)))
+}
+
+implicit val symbolMonoid: Monoid[Symbol] = imap[String, Symbol](Symbol(_))(_.name)
+'An |+| 'Other |+| 'Symbol

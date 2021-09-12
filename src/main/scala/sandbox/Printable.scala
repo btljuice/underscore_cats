@@ -6,6 +6,7 @@ trait Printable[A] { self =>
 }
 
 object Printable {
+  def apply[A](implicit p: Printable[A]): Printable[A] = p
   def format[A](a: A)(implicit p: Printable[A]): String = p.format(a)
 
   def fromToString[A]: Printable[A] = _.toString
@@ -21,3 +22,4 @@ object Printable {
     implicit val stringPrintable: Printable[String] = identity
   }
 }
+

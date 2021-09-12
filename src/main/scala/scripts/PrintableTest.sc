@@ -26,6 +26,12 @@ object Cat {
 
 val cat = Cat("lotus", 2, "grey-white-brown")
 cat.print()
-Show.apply[Cat].show(cat)
+Show[Cat].show(cat)
 
 implicit val dateShow: Show[Date] = d => s"${d.getTime}ms in since the Epoch"
+
+final case class Box[A](value: A)
+object Box {
+  implicit def printable[A: Printable]: Printable[Box[A]] =
+    Printable[A].contramap { case Box(a) => a }
+}
