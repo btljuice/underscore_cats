@@ -1,7 +1,10 @@
 import cats.Monad
 import cats.MonadError
+import cats.syntax.applicative._
+import cats.syntax.applicativeError._
 import cats.syntax.functor._
 import cats.syntax.flatMap._
+import cats.syntax.monadError._
 import cats.instances.list._
 import cats.instances.either._
 import cats.Id
@@ -50,16 +53,16 @@ sumSquare[MyId](1, 2)
 type ErrorOr[+A] = Either[String, A]
 val monadError: MonadError[ErrorOr, String] = MonadError[ErrorOr, String]
 
-val success = monadError.pure(42)
-val failure = monadError.raiseError("Bad state")
-monadError.handleErrorWith(failure) {
-  case "Bad state" => monadError.pure("It's ok")
-  case _ => monadError.raiseError("It's not ok")
+val success = 42.pure[ErrorOr]
+val failure = "Bad state".raiseError[ErrorOr, Int]
+failure.handleErrorWith {
+  case "Bad state" => 42.pure[ErrorOr]
+  case _ => "It's not ok".raiseError
 }
 
-monadError.handleError(failure) {
+failure.handleError {
   case "Bad state" => 42
   case _ => -1
 }
-monadError.ensure(success)("Number too low!")(_ > 1000)
+success.ensure("Number too low!")(_ > 1000)
 
