@@ -6,9 +6,11 @@ import cats.syntax.functor._
 import cats.syntax.flatMap._
 import cats.syntax.monadError._
 import cats.instances.list._
+import cats.instances.try_._
 import cats.instances.either._
 import cats.Id
 import scala.annotation.tailrec
+import scala.util.Try
 
 type MyId[A] = A
 /* Must obey
@@ -66,3 +68,15 @@ failure.handleError {
 }
 success.ensure("Number too low!")(_ > 1000)
 
+
+val exn: Throwable = new RuntimeException("some runtime exception")
+exn.raiseError[Try, Int]
+
+/* Exercise 4.5.4 */
+def validateAdult[F[_]](age: Int)(implicit me: MonadError[F, Throwable]): F[Int] =
+  age.pure[F].ensure(new IllegalArgumentException(s"$age < 18: must be an adult"))(_ >= 18)
+
+validateAdult[Try](18)
+validateAdult[Try](8)
+type ExceptionOr[A] = Either[Throwable, A]
+validateAdult[ExceptionOr](8)
