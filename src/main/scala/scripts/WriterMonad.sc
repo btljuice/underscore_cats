@@ -53,14 +53,13 @@ writer6.run
 /* 4.7.3 Exercise factorial w/ logger: Use the WriterMonad instead */
 def slowly[A](body: => A): A = try body finally Thread.sleep(100)
 
-def factorial(n: Int): Int = {
-  val ans = slowly { if (n == 0) 1 else n * factorial(n -1) }
-  println(s"fact $n $ans")
-  ans
-}
+def factorial(n: Int): Logged[Int] = for {
+  ans <- if (n <= 1) n.pure[Logged] else factorial(n - 1).map(n * _)
+  _ <- Vector(s"fact $n $ans").tell
+} yield ans
 
 // Works fine for single-thread job
-factorial(5)
+factorial(5).run
 
 // Logs are interleaved if jobs are run in parallel
 Await.result(
