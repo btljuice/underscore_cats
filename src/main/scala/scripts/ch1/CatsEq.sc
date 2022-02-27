@@ -6,6 +6,8 @@ import cats.instances.long._
 import cats.instances.option._
 import java.util.Date
 
+// One of cats.Eq goal is "type-safe" equality
+
 /* == operator in scala is not type-safe */
 1 == Some(1) // Compiles but gives false
 1 != None // Compiles also
