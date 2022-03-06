@@ -21,3 +21,5 @@ implicit val catPrintable: Printable[Cat] = c => {
 aPerson.print()
 
 aCat.print()
+
+

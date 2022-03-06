@@ -1,5 +1,8 @@
 package sandbox.ch1
 
+import cats.Contravariant
+import cats.implicits.toContravariantOps
+
 trait Printable[A] {
   def format(a: A): String
 }
@@ -13,6 +16,12 @@ object Printable {
   object Instances {
     implicit val stringPrintable: Printable[String] = identity
     implicit val intPrintable: Printable[Int] = _.toString
+    /** Contramap usage example */
+    implicit val boolPrintable: Printable[Boolean] = stringPrintable.contramap { case true => "yes"; case false => "no" }
+
+    implicit object printableContraMap extends Contravariant[Printable] {
+      override def contramap[A, B](fa: Printable[A])(f: B => A): Printable[B] = b => fa.format(f(b))
+    }
   }
 
   object Ops {

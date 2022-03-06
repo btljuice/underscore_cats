@@ -13,3 +13,7 @@ implicit val personWriter: JsonWriter[Person] = p => JsObject { Map(
 ) }
 
 aPerson.toJson
+
+// 1. What is the relationship of type classes instances related to a type and its subtype
+//    Ex. Should JsonWrite[A] be defined as JsonWrite[A] or JsonWrite[+A] or JsonWrite[-A] ?
+// 2. Which instance to select when there's many of them.
