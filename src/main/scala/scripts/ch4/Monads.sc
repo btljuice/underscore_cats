@@ -90,8 +90,18 @@ sumSquare[Id](1, 2)
 sumSquare[MyId](1, 2)
 
 /* 4.5.1 Monad errors */
+// MonadError is like exposing a "second" pure/flatMap/map API for the error type
+// Either String     | A
+//        raiseError | pure
+//        flatMap    | handleErrorWith
+//        *map       | handleError (E => A)
+
 type ErrorOr[+A] = Either[String, A]
+
 val monadError: MonadError[ErrorOr, String] = MonadError[ErrorOr, String]
+
+val success2 = monadError.pure(42)
+val failure2 = monadError.raiseError("error")
 
 val success = 42.pure[ErrorOr]
 val failure = "Bad state".raiseError[ErrorOr, Int]
@@ -114,6 +124,7 @@ exn.raiseError[Try, Int]
 def validateAdult[F[_]](age: Int)(implicit me: MonadError[F, Throwable]): F[Int] =
   age.pure[F].ensure(new IllegalArgumentException(s"$age < 18: must be an adult"))(_ >= 18)
 
+// Show that it works for any MonadError
 validateAdult[Try](18)
 validateAdult[Try](8)
 type ExceptionOr[A] = Either[Throwable, A]
