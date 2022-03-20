@@ -9,33 +9,38 @@ import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits._
 import scala.concurrent.duration.DurationInt
 
-Writer(
+// WriterT[F, L, V]
+// type Writer[Id, L, V]
+
+Writer( // WriterF[Id, Vector, Int]
   Vector(
     "It was the best of times",
     "it was the worst of times"),
-  1859)
+  1859
+)
 
 type Logged[A] = Writer[Vector[String], A]
 
 123.pure[Logged]
-Vector("msg1", "msg2", "msg3").tell
+Vector("msg1", "msg2", "msg3").tell.map(_ => 123)
 val aWriter = 123.writer(Vector("msg1", "msg2", "msg3"))
 
 val (log, result) = aWriter.run
 
+// Logs are appended
 val writer1 = for {
-  a <- 10.pure[({type W[A] = Writer[Vector[String], A]})#W]
+  a <- 10.pure[({type W[A] = Writer[Vector[String], A]})#W] // Needed to inline
   _ <- Vector("a", "b", "c").tell
   b <- 32.writer(Vector("x", "y", "z"))
-} yield a + b
+} yield a + b // 42, abcxyz
 
 writer1.run
 
 val writer2 = writer1.mapWritten(_.map(_.toUpperCase))
-writer2.run
+writer2.run // 42, ABCXYZ
 
 val writer3 = writer1.bimap(log => log.map(_.toUpperCase), res => res * 100)
-writer3.run
+writer3.run // 4200, ABCXYZ
 
 val writer4 = writer1.mapBoth { (log, res) =>
   val log2 = log.map(_ + '!')
