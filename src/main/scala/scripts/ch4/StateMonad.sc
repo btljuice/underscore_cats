@@ -80,21 +80,28 @@ object Symbol {
 
 type PoCalc[A] = State[List[Double], A]
 
-def evalOne(s: Symbol): PoCalc[Unit] = State.modify { xs =>
-  s match {
-    case Number(x) => x :: xs
-    case Plus => xs(0) + xs(1) :: xs.drop(2)
-    case Minus => xs(0) - xs(1) :: xs.drop(2)
-    case Times => xs(0) * xs(1) :: xs.drop(2)
-    case Divide => xs(0) / xs(1) :: xs.drop(2)
-  }
+def push(x: Double): PoCalc[Double] = State { xs => (x :: xs, x) }
+def operate(f: (Double, Double) => Double): PoCalc[Double] = State {
+  case a :: b :: xs =>
+    val c = f(a, b)
+    (c :: xs,  c)
+  case _ => sys.error("Unexpected, list must have at least 2 numbers")
+}
+
+def evalOne(s: Symbol): PoCalc[Double] = s match {
+  case Number(x) => push(x)
+  case Plus => operate(_ + _)
+  case Minus => operate(_ - _)
+  case Times => operate(_ * _)
+  case Divide => operate(_ / _)
 }
 
 def toSymbols(s: String): List[Symbol] = s.trim.split(' ').map { Symbol(_).get }.toList
 
-def calculate(ss: List[Symbol]): PoCalc[Double] = ss.foldLeft(State.set(List.empty[Double])) { (acc, s) =>
-  acc.flatMap(_ => evalOne(s))
-}.inspect { _.head }
+def calculate(ss: List[Symbol]): PoCalc[Double] = ss.foldLeft {
+  State.pure[List[Double], Double](0.0)
+} { (acc, s) => acc.flatMap(_ => evalOne(s)) }
+.inspect { _.head }
 
 calculate(toSymbols("1 2 +")).runA(Nil).value
 
