@@ -3,6 +3,8 @@ import cats.data.Reader
 /**
  * cats.data.Reader is a monad that allows us to sequence operations that depend on some input.
  * Instances of Reader wrap up functions of one argument, providing us with useful methods for composing them.
+ *
+ * @note Reader is a specific usage Kleisli arrows
  */
 final case class Cat(name: String, favoriteFood: String)
 val lotus = Cat("Lotus", "Can food")
