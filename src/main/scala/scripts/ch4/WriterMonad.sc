@@ -1,6 +1,7 @@
 
 /* 4.7 Writer Monad */
 import cats.data.Writer
+import cats.data.WriterT
 import cats.instances.vector._
 import cats.syntax.applicative._
 import cats.syntax.writer._
@@ -8,6 +9,13 @@ import scala.concurrent.Await
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits._
 import scala.concurrent.duration.DurationInt
+
+
+/**
+ * cats.data.Writer is a monad that lets us carry a log/payload along with a computation.
+ * We can use it to record messages, errors, or additional data about a computation,
+ * and extract the log alongside the final result.
+ */
 
 // WriterT[F, L, V]
 // type Writer[Id, L, V]
@@ -19,7 +27,8 @@ Writer( // WriterF[Id, Vector, Int]
   1859
 )
 
-type Logged[A] = Writer[Vector[String], A]
+type Logged[A] = Writer[Vector[String], A] // WriterT[Id, Vector[String, A]
+
 
 123.pure[Logged]
 Vector("msg1", "msg2", "msg3").tell.map(_ => 123)
@@ -70,3 +79,10 @@ factorial(5).run
 Await.result(
   Future.sequence(Future(factorial(5)) :: Future(factorial(5)) :: Nil),
   5.seconds)
+
+
+type FutureLogged[A] = WriterT[Option, Vector[String], A]
+
+for {
+  () <- 5.pure[FutureLogged]
+} yield ()
